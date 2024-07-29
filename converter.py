@@ -1,5 +1,8 @@
 import os
 import sys
+import platform
+
+iswindows = platform.uname().system.startswith('Win')
 
 ffmpegExtensions = ["mov", "mp4", "webm", "avi", 
                     "jpg", "jpeg", "png", "webp", "avif", "gif", "bmp", "svg", "tiff",
@@ -12,7 +15,10 @@ def ffmpegC(inputFile, outputFile):
 
 def webifyC(inputFile, outputFile, outputExt):
     oslist = os.listdir()
-    os.system(f'.\webify {inputFile}')
+    if iswindows:
+        os.system(f'.\win\webify.exe {inputFile}')
+    else:
+        os.system(f'./webify {inputFile}')
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     for i in ['eot', 'woff', 'svg']:
@@ -28,7 +34,10 @@ def webifyC(inputFile, outputFile, outputExt):
         os.rename(newSourceName, outputFile)
 
 def woff2CC(inputFile, outputFile, outputExt):
-    os.system(f".\woff2_compress {inputFile}")
+    if iswindows:
+        os.system(f".\win\woff2_compress.exe {inputFile}")
+    else:
+        os.system(f"./woff2_compress {inputFile}")
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     if inputName != outputName:
@@ -37,7 +46,10 @@ def woff2CC(inputFile, outputFile, outputExt):
         os.rename(newSourceName, outputFile)
 
 def woff2CD(inputFile, outputFile, outputExt):
-    os.system(f".\woff2_decompress {inputFile}")
+    if iswindows:
+        os.system(f".\win\woff2_decompress.exe {inputFile}")
+    else:
+        os.system(f"./woff2_decompress {inputFile}")
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     if inputName != outputName:
