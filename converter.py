@@ -5,7 +5,7 @@ import platform
 iswindows = platform.uname().system.startswith('Win')
 
 ffmpegExtensions = ["mov", "mp4", "webm", "avi", 
-                    "jpg", "jpeg", "png", "webp", "avif", "gif", "bmp", "svg", "tiff",
+                    "jpg", "jpeg", "png", "webp", "jxl", "avif", "gif", "bmp", "svg", "tiff",
                     "mp3", "ogg", "wav", "flac", "aac", "wma", "aiff", "m4a"]
 webifyInExtensions = ["ttf", "otf"]
 webifyOutExtensions = ["woff", "eot", "svg"]
