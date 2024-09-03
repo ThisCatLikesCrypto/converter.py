@@ -10,8 +10,8 @@ ffmpegExtensions = ["mov", "mp4", "webm", "avi",
 webifyInExtensions = ["ttf", "otf"]
 webifyOutExtensions = ["woff", "eot", "svg"]
 
-def ffmpegC(inputFile, outputFile):
-    os.system(f'ffmpeg -i {inputFile} {outputFile}')
+def ffmpegC(inputFile, outputFile, effortLevel):
+    os.system(f'ffmpeg -i {inputFile} {outputFile} -effort {effortLevel}')
 
 def webifyC(inputFile, outputFile, outputExt):
     oslist = os.listdir()
@@ -62,8 +62,10 @@ def main():
         inputFile = sys.argv[1]
         outputFile = sys.argv[2]
     except IndexError:
-        print("Syntax: python3 converter.py [input file name] [output file name]")
+        print("Syntax: python3 converter.py [input file name] [output file name] [ffmpeg effort level (1-7)]")
         sys.exit()
+    try: effortLevel = int(sys.argv[3])
+    except IndexError: effortLevel = 4
     try:
         inputExt = inputFile.split(".")[1]
         outputExt = outputFile.split(".")[1]
@@ -74,7 +76,7 @@ def main():
     print(f"Input File: {inputFile} (type {inputExt})\nOutput File: {outputFile} (type {outputExt})")
 
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
-        ffmpegC(inputFile, outputFile)
+        ffmpegC(inputFile, outputFile, effortLevel)
     elif inputExt.lower() == "woff":
         print("fuck")
     elif inputExt.lower() in webifyInExtensions and outputExt.lower() in webifyOutExtensions:
