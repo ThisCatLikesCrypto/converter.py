@@ -1,8 +1,8 @@
 import os
 import sys
-import platform
+import subprocess
 
-iswindows = platform.uname().system.startswith('Win')
+iswindows = os.name == "nt"
 
 ffmpegExtensions = ["mov", "mp4", "webm", "avi", "mkv", "flv", "wmv", "m4v", "f4v", "mpeg"
                     "jpg", "jpeg", "png", "webp", "jxl", "avif", "gif", "bmp", "svg", "tiff", "ico",
@@ -11,6 +11,30 @@ heifConvertInExtensions = ["heic", "heif"]
 heifConvertOutExtensions = ["jpg", "png", "webp", "gif", "tiff", "bmp", "ico"]
 webifyInExtensions = ["ttf", "otf"]
 webifyOutExtensions = ["woff", "eot", "svg"]
+
+# Convert files using heif-convert
+def heifConvertC(inputFile: str, outputFile: str, inputExt: str, outputExt: str):
+    print("\033[38;5;117mCalling heif-convert...\033[0m")
+    try:
+        result = subprocess.run(
+            ['heif-convert', inputFile, '-f', outputExt],
+            check=True, 
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE 
+        )
+
+        # Check if the output file name is different, then rename it
+        generatedFile = inputFile.replace(inputExt, outputExt)
+        if outputFile != generatedFile:
+            os.rename(generatedFile, outputFile)
+        print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error during HEIF conversion: {e.stderr.decode('utf-8')}")
+    except FileNotFoundError:
+        print("heif-convert is not installed or not found in the system path.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
 
 def heifConvertandFFmpegC(inputFile: str, outputFile: str, inputExt: str, outputExt: str):
     print(f"\033[38;5;117mheif-convert does not support converting to that extension, however ffmpeg does.\nConverting {inputExt} to png with heif-convert and then to {outputExt} with ffmpeg.\033[0m")
@@ -21,16 +45,30 @@ def heifConvertandFFmpegC(inputFile: str, outputFile: str, inputExt: str, output
         os.rename(tempfile, temperfile)
     else:
         temperfile = None
-    os.system(f'heif-convert {inputFile} -f png')
+    heifConvertC(inputFile, tempfile, inputExt, "png")
     ffmpegC(tempfile, outputFile, 7)
     os.remove(tempfile)
     # Workaround above, pt2
     if temperfile in os.listdir():
         os.rename(temperfile, tempfile)
 
+# Convert files using ffmpeg
 def ffmpegC(inputFile, outputFile, effortLevel):
-    os.system(f'ffmpeg -i {inputFile} {outputFile} -effort {effortLevel}')
+    print("\033[38;5;117mCalling ffmpeg...\033[0m")
+    try:
+        # Use subprocess.run to call ffmpeg
+        result = subprocess.run(
+            ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', inputFile, outputFile, '-effort', str(effortLevel)],
+            check=True,
+            stderr=subprocess.PIPE 
+        )
+        print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during conversion: {e.stderr.decode('utf-8')}")
+    except FileNotFoundError:
+        print("ffmpeg is not installed or not found in the system path.")
 
+# Convert files using webify
 def webifyC(inputFile, outputFile, outputExt):
     oslist = os.listdir()
     if iswindows:
@@ -51,6 +89,7 @@ def webifyC(inputFile, outputFile, outputExt):
         print(f"Renaming {newSourceName} to {outputFile}")
         os.rename(newSourceName, outputFile)
 
+# Convert files using woff2_compress
 def woff2CC(inputFile, outputFile, outputExt):
     if iswindows:
         os.system(f".\win\woff2_compress.exe {inputFile}")
@@ -63,6 +102,7 @@ def woff2CC(inputFile, outputFile, outputExt):
         print(f"Renaming {newSourceName} to {outputFile}")
         os.rename(newSourceName, outputFile)
 
+# Convert files using woff2_decompress
 def woff2CD(inputFile, outputFile, outputExt):
     if iswindows:
         os.system(f".\win\woff2_decompress.exe {inputFile}")
@@ -80,7 +120,7 @@ def main():
         inputFile = sys.argv[1]
         outputFile = sys.argv[2]
     except IndexError:
-        print("Syntax: python3 converter.py [input file name] [output file name] [ffmpeg effort level (1-7)]")
+        print("Syntax: python3 converter.py [input file name] [output file name] [ffmpeg effort level if using ffmpeg (1-7, default 4)]")
         sys.exit()
     try: effortLevel = int(sys.argv[3])
     except IndexError: effortLevel = 4
@@ -103,9 +143,7 @@ def main():
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
         ffmpegC(inputFile, outputFile, effortLevel)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in heifConvertOutExtensions:
-        os.system(f'heif-convert {inputFile} -f {outputExt}')
-        if outputFile != inputFile.replace(inputExt, outputExt):
-            os.rename(inputFile.replace(inputExt, outputExt), outputFile)
+        heifConvertC(inputFile, outputFile, inputExt, outputExt)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in ffmpegExtensions:
         heifConvertandFFmpegC(inputFile, outputFile, inputExt, outputExt)
     elif inputExt.lower() in webifyInExtensions and outputExt.lower() in webifyOutExtensions:
@@ -123,7 +161,6 @@ def main():
     else:
         print(f"Converting {inputExt} to {outputExt} not supported.")
         sys.exit()
-    print("\033[38;5;120mConverted!\033[0m")
 
 
 if __name__ == "__main__":
