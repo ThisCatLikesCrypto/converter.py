@@ -4,7 +4,7 @@ import subprocess
 
 iswindows = os.name == "nt"
 
-ffmpegExtensions = ["mov", "mp4", "webm", "avi", "mkv", "flv", "wmv", "m4v", "f4v", "mpeg"
+ffmpegExtensions = ["mov", "mp4", "webm", "avi", "mkv", "flv", "wmv", "m4v", "f4v", "mpeg",
                     "jpg", "jpeg", "png", "webp", "jxl", "avif", "gif", "bmp", "svg", "tiff", "ico",
                     "mp3", "ogg", "wav", "flac", "aac", "wma", "aiff", "m4a", "mka", "opus", "alac"]
 heifConvertInExtensions = ["heic", "heif"]
