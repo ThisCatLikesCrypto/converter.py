@@ -115,31 +115,45 @@ def woff2CD(inputFile, outputFile, outputExt):
         print(f"Renaming {newSourceName} to {outputFile}")
         os.rename(newSourceName, outputFile)
 
+import sys
+import os
+
 def main():
+    # Handle command-line arguments
     try:
         inputFile = sys.argv[1]
         outputFile = sys.argv[2]
     except IndexError:
-        print("Syntax: python3 converter.py [input file name] [output file name] [ffmpeg effort level if using ffmpeg (1-7, default 4)]")
-        sys.exit()
-    try: effortLevel = int(sys.argv[3])
-    except IndexError: effortLevel = 4
+        print("Syntax: python3 converter.py [input file path] [output file path] [ffmpeg effort level if using ffmpeg (1-7, default 4)]")
+        sys.exit(1)
+
+    # Handle optional effort level
     try:
-        inputExt = inputFile.split(".")[1]
-        outputExt = outputFile.split(".")[1]
+        effortLevel = int(sys.argv[3])
+    except IndexError:
+        effortLevel = 4
+    except ValueError:
+        print("Effort level must be an integer between 1 and 7")
+        sys.exit(1)
+
+    try:
+        inputExt = os.path.splitext(inputFile)[1][1:]  # Get extension without the dot
+        outputExt = os.path.splitext(outputFile)[1][1:]
     except IndexError:
         print("File extension must be included in file name")
-        sys.exit()
+        sys.exit(1)
     
     print(f"Input File: {inputFile} (type {inputExt})\nOutput File: {outputFile} (type {outputExt})")
 
-    if inputFile not in os.listdir():
-        print("bruh the input file doesn't exist")
-        sys.exit()
-    elif outputFile in os.listdir():
-        print("bruh the output file already exists")
-        sys.exit()
+    if not os.path.isfile(inputFile):
+        print("Error: The input file does not exist.")
+        sys.exit(1)
 
+    if os.path.isfile(outputFile):
+        print("Error: The output file already exists.")
+        sys.exit(1)
+
+    # Process file conversion based on extensions
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
         ffmpegC(inputFile, outputFile, effortLevel)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in heifConvertOutExtensions:
@@ -154,14 +168,13 @@ def main():
         woff2CC(inputFile, outputFile, outputExt)
     elif inputExt.lower() == "woff2" and outputExt.lower() in webifyOutExtensions:
         woff2CD(inputFile, outputFile, outputExt)
-        inputFile = inputFile.split(".")[0] + ".ttf"
-        outputFile = outputFile.split(".")[0] + "." + outputExt.lower()
+        inputFile = os.path.splitext(inputFile)[0] + ".ttf"
+        outputFile = os.path.splitext(outputFile)[0] + "." + outputExt.lower()
         webifyC(inputFile, outputFile, outputExt)
         os.remove(inputFile)
     else:
-        print(f"Converting {inputExt} to {outputExt} not supported.")
-        sys.exit()
-
+        print(f"Converting {inputExt} to {outputExt} is not supported.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
