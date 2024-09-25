@@ -68,6 +68,25 @@ def ffmpegC(inputFile, outputFile, effortLevel):
     except FileNotFoundError:
         print("ffmpeg is not installed or not found in the system path.")
 
+def ffmpegAV1C(inputFile, outputFile):
+    print("\033[38;5;117mCalling ffmpeg...\033[0m")
+    outputFile = outputFile.replace(".av1", ".mkv")
+    print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile} -effort 7")
+    try:
+        # why does this not display output???
+        # Use subprocess.run to call ffmpeg
+        # result = subprocess.run(
+        #     ['ffmpeg', '-i', inputFile, '-c:v', 'libaom-av1', '-c:a', 'libopus', outputFile, '-effort', "7"],
+        #     check=True,
+        #     stderr=subprocess.PIPE
+        # )
+        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile} -effort 7")
+        print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during conversion: {e.stderr.decode('utf-8')}")
+    except FileNotFoundError:
+        print("ffmpeg is not installed or not found in the system path.")
+
 # Convert files using webify
 def webifyC(inputFile, outputFile, outputExt):
     oslist = os.listdir()
@@ -115,9 +134,6 @@ def woff2CD(inputFile, outputFile, outputExt):
         print(f"Renaming {newSourceName} to {outputFile}")
         os.rename(newSourceName, outputFile)
 
-import sys
-import os
-
 def main():
     # Handle command-line arguments
     try:
@@ -154,7 +170,10 @@ def main():
         sys.exit(1)
 
     # Process file conversion based on extensions
-    if inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
+    if inputExt.lower() in ffmpegExtensions and outputExt.lower() == "av1":
+        print("Utilising special AV1 mode: converts to AV1 with libaom-av1 and libopus")
+        ffmpegAV1C(inputFile, outputFile)
+    elif inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
         ffmpegC(inputFile, outputFile, effortLevel)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in heifConvertOutExtensions:
         heifConvertC(inputFile, outputFile, inputExt, outputExt)
