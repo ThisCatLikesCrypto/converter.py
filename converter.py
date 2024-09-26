@@ -70,7 +70,7 @@ def ffmpegC(inputFile, outputFile, effortLevel):
 
 def ffmpegAV1C(inputFile, outputFile):
     print("\033[38;5;117mCalling ffmpeg...\033[0m")
-    outputFile = outputFile.replace(".av1", ".mkv")
+    outputFile = outputFile.replace(".av1", ".webm")
     print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile} -effort 7")
     try:
         # why does this not display output???

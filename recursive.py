@@ -24,7 +24,7 @@ def process_directory(directory, quality):
                 print(f"Converting {input_file} to {output_file} with quality {quality}")
                 convert_file(input_file, output_file, quality)
             elif file.lower().endswith(('.mp4', '.mov')):
-                output_file = os.path.splitext(input_file)[0] + '.webm'
+                output_file = os.path.splitext(input_file)[0] + '.av1'
                 print(f"Converting {input_file} to {output_file} with quality {quality}")
                 convert_file(input_file, output_file, quality)
 
