@@ -58,7 +58,7 @@ def ffmpegC(inputFile, outputFile, effortLevel):
     try:
         # Use subprocess.run to call ffmpeg
         result = subprocess.run(
-            ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', inputFile, outputFile, '-effort', str(effortLevel)],
+            ['ffmpeg', '-hide_banner', '-i', inputFile, '-effort', str(effortLevel), outputFile],
             check=True,
             stderr=subprocess.PIPE 
         )
@@ -71,16 +71,9 @@ def ffmpegC(inputFile, outputFile, effortLevel):
 def ffmpegAV1C(inputFile, outputFile):
     print("\033[38;5;117mCalling ffmpeg...\033[0m")
     outputFile = outputFile.replace(".av1", ".webm")
-    print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile} -effort 7")
+    print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus -effort 7 {outputFile}")
     try:
-        # why does this not display output???
-        # Use subprocess.run to call ffmpeg
-        # result = subprocess.run(
-        #     ['ffmpeg', '-i', inputFile, '-c:v', 'libaom-av1', '-c:a', 'libopus', outputFile, '-effort', "7"],
-        #     check=True,
-        #     stderr=subprocess.PIPE
-        # )
-        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile} -effort 7")
+        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -crf 26 -effort 7 -c:a libopus {outputFile}")
         print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
     except subprocess.CalledProcessError as e:
         print(f"Error occurred during conversion: {e.stderr.decode('utf-8')}")
