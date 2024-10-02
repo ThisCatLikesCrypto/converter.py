@@ -71,9 +71,9 @@ def ffmpegC(inputFile, outputFile, effortLevel):
 def ffmpegAV1C(inputFile, outputFile):
     print("\033[38;5;117mCalling ffmpeg...\033[0m")
     outputFile = outputFile.replace(".av1", ".webm")
-    print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus -effort 7 {outputFile}")
+    print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile}")
     try:
-        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -crf 26 -effort 7 -c:a libopus {outputFile}")
+        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -crf 26 -c:a libopus {outputFile}")
         print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
     except subprocess.CalledProcessError as e:
         print(f"Error occurred during conversion: {e.stderr.decode('utf-8')}")
