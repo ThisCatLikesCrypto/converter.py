@@ -162,6 +162,17 @@ def main():
         print("Error: The output file already exists.")
         sys.exit(1)
 
+    if " " in inputFile:
+        print("Warning: Input file path cannot contain spaces.")
+        print("File will be renamed to remove spaces.")
+        os.rename(inputFile, inputFile.replace(" ", "_"))
+        inputFile = inputFile.replace(" ", "_")
+
+    if " " in outputFile:
+        print("Warning: Output file path cannot contain spaces.")
+        print("File will be renamed to remove spaces.")
+        outputFile = outputFile.replace(" ", "_")
+
     # Process file conversion based on extensions
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() == "av1":
         print("Utilising special AV1 mode: converts to AV1 with libaom-av1 and libopus")
