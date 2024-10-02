@@ -84,7 +84,7 @@ def ffmpegAV1C(inputFile, outputFile):
 def webifyC(inputFile, outputFile, outputExt):
     oslist = os.listdir()
     if iswindows:
-        os.system(f'.\win\webify.exe {inputFile}')
+        os.system(f'.\\win\\webify.exe {inputFile}')
     else:
         os.system(f'./webify {inputFile}')
     outputName = outputFile.split(".")[0]
@@ -104,7 +104,7 @@ def webifyC(inputFile, outputFile, outputExt):
 # Convert files using woff2_compress
 def woff2CC(inputFile, outputFile, outputExt):
     if iswindows:
-        os.system(f".\win\woff2_compress.exe {inputFile}")
+        os.system(f".\\win\\woff2_compress.exe {inputFile}")
     else:
         os.system(f"./woff2_compress {inputFile}")
     outputName = outputFile.split(".")[0]
@@ -117,7 +117,7 @@ def woff2CC(inputFile, outputFile, outputExt):
 # Convert files using woff2_decompress
 def woff2CD(inputFile, outputFile, outputExt):
     if iswindows:
-        os.system(f".\win\woff2_decompress.exe {inputFile}")
+        os.system(f".\\win\\woff2_decompress.exe {inputFile}")
     else:
         os.system(f"./woff2_decompress {inputFile}")
     outputName = outputFile.split(".")[0]
