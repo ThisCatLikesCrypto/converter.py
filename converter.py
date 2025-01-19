@@ -86,7 +86,7 @@ def webifyC(inputFile, outputFile, outputExt):
     if iswindows:
         os.system(f'.\\win\\webify.exe {inputFile}')
     else:
-        os.system(f'./webify {inputFile}')
+        os.system(f'./bin/webify {inputFile}')
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     for i in ['eot', 'woff', 'svg']:
@@ -106,7 +106,7 @@ def woff2CC(inputFile, outputFile, outputExt):
     if iswindows:
         os.system(f".\\win\\woff2_compress.exe {inputFile}")
     else:
-        os.system(f"./woff2_compress {inputFile}")
+        os.system(f"./bin/woff2_compress {inputFile}")
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     if inputName != outputName:
@@ -119,7 +119,7 @@ def woff2CD(inputFile, outputFile, outputExt):
     if iswindows:
         os.system(f".\\win\\woff2_decompress.exe {inputFile}")
     else:
-        os.system(f"./woff2_decompress {inputFile}")
+        os.system(f"./binwoff2_decompress {inputFile}")
     outputName = outputFile.split(".")[0]
     inputName = inputFile.split(".")[0]
     if inputName != outputName:
