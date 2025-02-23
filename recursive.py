@@ -32,6 +32,10 @@ def collect_tasks(directory):
                 output_file = os.path.splitext(input_file)[0] + '.av1'
                 print(f"Queueing conversion of {input_file} to {output_file}")
                 tasks.append((input_file, output_file))
+            elif file.lower().endswith(('.mp3', '.wav', '.ogg')):
+                output_file = os.path.splitext(input_file)[0] + '.opus'
+                print(f"Queueing conversion of {input_file} to {output_file}")
+                tasks.append((input_file, output_file))
             else:
                 print(f"Skipping {input_file}")
     return tasks

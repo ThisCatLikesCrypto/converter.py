@@ -172,6 +172,28 @@ def main():
         print("Warning: Output file path cannot contain spaces.")
         print("File will be renamed to remove spaces.")
         outputFile = outputFile.replace(" ", "_")
+    
+    specialCharacters = "!@#$%^&*()_+{}|:<>?,;[]-="
+
+    # check and remove special characters
+    if not inputFile.isalnum():
+        oldInputFile = inputFile
+        print("Warning: Input file path contains special characters.")
+        print("File will be renamed to remove special characters.")
+        for char in inputFile:
+            if char in specialCharacters:
+                inputFile = inputFile.replace(char, "")
+    os.rename(oldInputFile, inputFile)
+    
+    if not outputFile.isalnum():
+        print("Warning: Output file path contains special characters.")
+        print("File will be renamed to remove special characters.")
+        for char in outputFile:
+            if char in specialCharacters:
+                outputFile = outputFile.replace(char, "")
+    
+    print(inputFile)
+    print(outputFile)
 
     # Process file conversion based on extensions
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() == "av1":
