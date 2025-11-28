@@ -24,8 +24,8 @@ def collect_tasks(directory):
     for root, dirs, files in os.walk(directory):
         for file in files:
             input_file = os.path.join(root, file)
-            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif', '.avif', '.bmp', '.tiff')):
-                output_file = os.path.splitext(input_file)[0] + '.webp'
+            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif', '.avif', '.bmp', '.tiff', '.webp')):
+                output_file = os.path.splitext(input_file)[0] + '.jxl'
                 print(f"Queueing conversion of {input_file} to {output_file}")
                 tasks.append((input_file, output_file))
             elif file.lower().endswith(('.mp4', '.mov', '.avi', '.wmv')):

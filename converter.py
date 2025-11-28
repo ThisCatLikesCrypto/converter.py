@@ -72,8 +72,16 @@ def ffmpegAV1C(inputFile, outputFile):
     print("\033[38;5;117mCalling ffmpeg...\033[0m")
     outputFile = outputFile.replace(".av1", ".webm")
     print(f"ffmpeg -i {inputFile} -c:v libaom-av1 -c:a libopus {outputFile}")
+    FORCE_OSSYSTEM_FFMPEG_AV1 = False
     try:
-        os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -crf 26 -c:a libopus {outputFile}")
+        if FORCE_OSSYSTEM_FFMPEG_AV1 == True:
+            os.system(f"ffmpeg -i {inputFile} -c:v libaom-av1 -crf 26 -c:a libopus {outputFile}")
+        else:
+            result = subprocess.run(
+            ['ffmpeg', '-hide_banner', '-i', inputFile, '-c:v', 'libaom-av1', '-crf', '26', '-c:a', 'libopus', outputFile],
+            check=True,
+            stderr=subprocess.PIPE
+            )
         print(f"\033[38;5;120mWrote {os.path.join(os.getcwd(), outputFile)}\033[0m")
     except subprocess.CalledProcessError as e:
         print(f"Error occurred during conversion: {e.stderr.decode('utf-8')}")
@@ -127,6 +135,27 @@ def woff2CD(inputFile, outputFile, outputExt):
         print(f"Renaming {newSourceName} to {outputFile}")
         os.rename(newSourceName, outputFile)
 
+def _is_problematic_path(path: str) -> bool:
+    # Consider spaces and shell-significant characters problematic for os.system calls.
+    specialChars = ' !@#$%^&*+{}|:<>?,;[]\'"`'
+    return any(ch in path for ch in specialChars)
+
+def _make_safe_name(path: str) -> str:
+    # Create a safe filename in the same directory, avoiding spaces and special chars.
+    dirn, basen = os.path.split(path)
+    name, ext = os.path.splitext(basen)
+    safe_base = ''.join(ch if ch.isalnum() or ch in ('-', '_', '.') else '_' for ch in name)
+    # Prefix to avoid collisions and indicate temporary nature.
+    safe_basen = f"{safe_base}__safe{ext}"
+    safe_path = os.path.join(dirn or ".", safe_basen)
+    # Ensure uniqueness
+    counter = 1
+    while os.path.exists(safe_path):
+        safe_basen = f"{safe_base}__safe_{counter}{ext}"
+        safe_path = os.path.join(dirn or ".", safe_basen)
+        counter += 1
+    return safe_path
+
 def main():
     # Handle command-line arguments
     try:
@@ -162,64 +191,83 @@ def main():
         print("Error: The output file already exists.")
         sys.exit(1)
 
-    if " " in inputFile:
-        print("Warning: Input file path cannot contain spaces.")
-        print("File will be renamed to remove spaces.")
-        os.rename(inputFile, inputFile.replace(" ", "_"))
-        inputFile = inputFile.replace(" ", "_")
+    # Prepare safe temporary names if necessary
+    originalInput = inputFile
+    originalOutput = outputFile
 
-    if " " in outputFile:
-        print("Warning: Output file path cannot contain spaces.")
-        print("File will be renamed to remove spaces.")
-        outputFile = outputFile.replace(" ", "_")
-    
-    specialCharacters = "!@#$%^&*()_+{}|:<>?,;[]-="
+    tempInput = inputFile
+    tempOutput = outputFile
 
-    # check and remove special characters
-    if not inputFile.isalnum():
-        oldInputFile = inputFile
-        print("Warning: Input file path contains special characters.")
-        print("File will be renamed to remove special characters.")
-        for char in inputFile:
-            if char in specialCharacters:
-                inputFile = inputFile.replace(char, "")
-    os.rename(oldInputFile, inputFile)
-    
-    if not outputFile.isalnum():
-        print("Warning: Output file path contains special characters.")
-        print("File will be renamed to remove special characters.")
-        for char in outputFile:
-            if char in specialCharacters:
-                outputFile = outputFile.replace(char, "")
-    
-    print(inputFile)
-    print(outputFile)
+    needTempInput = _is_problematic_path(inputFile)
+    needTempOutput = _is_problematic_path(outputFile)
 
-    # Process file conversion based on extensions
+    if needTempInput:
+        tempInput = _make_safe_name(inputFile)
+        print(f"Renaming input to safe temporary name: {tempInput}")
+        os.rename(inputFile, tempInput)
+
+    if needTempOutput:
+        # Generate a safe output path in the same directory
+        tempOutput = _make_safe_name(outputFile)
+
+    print(tempInput)
+    print(tempOutput)
+
+    # Process file conversion based on extensions, using safe temp paths
     if inputExt.lower() in ffmpegExtensions and outputExt.lower() == "av1":
         print("Utilising special AV1 mode: converts to AV1 with libaom-av1 and libopus")
-        ffmpegAV1C(inputFile, outputFile)
+        ffmpegAV1C(tempInput, tempOutput)
     elif inputExt.lower() in ffmpegExtensions and outputExt.lower() in ffmpegExtensions:
-        ffmpegC(inputFile, outputFile, effortLevel)
+        ffmpegC(tempInput, tempOutput, effortLevel)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in heifConvertOutExtensions:
-        heifConvertC(inputFile, outputFile, inputExt, outputExt)
+        heifConvertC(tempInput, tempOutput, inputExt, outputExt)
     elif inputExt.lower() in heifConvertInExtensions and outputExt.lower() in ffmpegExtensions:
-        heifConvertandFFmpegC(inputFile, outputFile, inputExt, outputExt)
+        heifConvertandFFmpegC(tempInput, tempOutput, inputExt, outputExt)
     elif inputExt.lower() in webifyInExtensions and outputExt.lower() in webifyOutExtensions:
-        webifyC(inputFile, outputFile, outputExt)
+        webifyC(tempInput, tempOutput, outputExt)
     elif inputExt.lower() == "woff2" and outputExt.lower() == "ttf":
-        woff2CD(inputFile, outputFile, outputExt)
+        woff2CD(tempInput, tempOutput, outputExt)
     elif inputExt.lower() == "ttf" and outputExt.lower() == "woff2":
-        woff2CC(inputFile, outputFile, outputExt)
+        woff2CC(tempInput, tempOutput, outputExt)
     elif inputExt.lower() == "woff2" and outputExt.lower() in webifyOutExtensions:
-        woff2CD(inputFile, outputFile, outputExt)
-        inputFile = os.path.splitext(inputFile)[0] + ".ttf"
-        outputFile = os.path.splitext(outputFile)[0] + "." + outputExt.lower()
-        webifyC(inputFile, outputFile, outputExt)
-        os.remove(inputFile)
+        woff2CD(tempInput, tempOutput, outputExt)
+        tempInput = os.path.splitext(tempInput)[0] + ".ttf"
+        tempOutput = os.path.splitext(tempOutput)[0] + "." + outputExt.lower()
+        webifyC(tempInput, tempOutput, outputExt)
     else:
         print(f"Converting {inputExt} to {outputExt} is not supported.")
+        # Restore original input name if we changed it
+        if needTempInput and os.path.exists(tempInput) and not os.path.exists(originalInput):
+            os.rename(tempInput, originalInput)
         sys.exit(1)
+
+    # After conversion: move safe temp output to the requested output path
+    try:
+        # ffmpegAV1C may change extension to .webm; handle that when tempOutput differs by extension
+        if not os.path.exists(tempOutput):
+            # Try to find generated file with possibly altered extension
+            tempBase = os.path.splitext(tempOutput)[0]
+            candidates = [p for p in os.listdir(os.path.dirname(tempOutput) or ".")
+                          if os.path.splitext(p)[0] == os.path.basename(tempBase)]
+            for cand in candidates:
+                candPath = os.path.join(os.path.dirname(tempOutput) or ".", cand)
+                if os.path.isfile(candPath):
+                    tempOutput = candPath
+                    break
+
+        if os.path.abspath(tempOutput) != os.path.abspath(originalOutput):
+            print(f"Renaming output to requested name: {originalOutput}")
+            os.rename(tempOutput, originalOutput)
+    except Exception as e:
+        print(f"Failed to finalize output file name: {e}")
+
+    # Restore original input filename if it was temporarily changed
+    try:
+        if needTempInput and os.path.exists(tempInput) and not os.path.exists(originalInput):
+            print(f"Restoring original input filename: {originalInput}")
+            os.rename(tempInput, originalInput)
+    except Exception as e:
+        print(f"Failed to restore original input filename: {e}")
 
 if __name__ == "__main__":
     main()
